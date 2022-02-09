@@ -124,6 +124,33 @@ public:
 		}
 	}
 
+	// Checks operations with iterator
+	void test_4(int size = 1000)
+	{
+		clearAndCheck();
+
+		for (int i = 0; i < size; ++i)
+		{
+			Map val = {static_cast<int>(random()), std::to_string(random())};
+			list.pushBack(val);
+		}
+
+		assert(list.getSize() == size && "Wrong size after pushBack()");
+/*
+		auto it = list.begin();
+
+		list.erase(it);
+		++it;
+
+		assert(it.isValid() && "Invalid iterator after erase first element");
+		assert(!(it != list.begin()) && "Iterator points wrong after erase first element");*/
+		/*
+		for (int i = 0; i < size; ++i)
+		{
+
+		}*/
+	}
+
 private:
 	struct Map
 	{
@@ -146,6 +173,8 @@ int main()
 	lt.test_2();
 	puts("OK\nTest 3 ...");
 	lt.test_3();
+	puts("OK\nTest 4 ...");
+	lt.test_4();
 	puts("OK");
 
 	return 0;
