@@ -152,19 +152,23 @@ namespace lab618
         void erase(CIterator& it)
         {
             leaf *pcurr = it.getLeaf();
-            leaf *pnext = pcurr->pnext;
-            leaf *pprev = m_pBegin;
 
-            while (pprev->pnext != pcurr) {
-                pprev = pprev->pnext;
-            }
+            if (pcurr != m_pBegin)
+            {
+                leaf *pprev = m_pBegin;
 
-            if (pprev != nullptr) {
-                pprev->pnext = pnext;
+                while (pprev->pnext != pcurr)
+                {
+                    pprev = pprev->pnext;
+                }
+
+                pprev->pnext = pcurr->pnext;
                 it.setLeaf(pprev);
             }
-            else {
+            else
+            {
                 it.setLeaf(nullptr);
+                m_pBegin = pcurr->pnext;
                 it.setLeafPreBegin(m_pBegin);
             }
 
@@ -345,19 +349,32 @@ namespace lab618
                 m_pEnd = m_pEnd->pnext;
             }
             else
+            {
                 m_pEnd = new leaf(data, nullptr, nullptr);
                 m_pBegin = m_pEnd;
+            }
         }
 
         T popBack()
         {
             if (m_pEnd == nullptr)
+            {
                 throw "List is empty!";
+            }
 
             leaf *tmp_ptr = m_pEnd;
             T tmp_data = m_pEnd->data;
             m_pEnd = m_pEnd->pprev;
-            m_pEnd->pnext = nullptr;
+            
+            if (m_pEnd != nullptr)
+            {
+                m_pEnd->pnext = nullptr;
+            }
+            else
+            {
+                m_pBegin = nullptr;
+            }
+
             delete tmp_ptr;
 
             return tmp_data;
@@ -380,12 +397,23 @@ namespace lab618
         T popFront()
         {
             if (m_pBegin == nullptr)
+            {
                 throw "List is empty!";
+            }
 
             leaf *tmp_ptr = m_pBegin;
             T tmp_data = m_pBegin->data;
             m_pBegin = m_pBegin->pnext;
-            m_pBegin->pprev = nullptr;
+            
+            if (m_pBegin != nullptr)
+            {
+                m_pBegin->pprev = nullptr;
+            }
+            else
+            {
+                m_pEnd = nullptr;
+            }
+
             delete tmp_ptr;
 
             return tmp_data;
@@ -398,16 +426,24 @@ namespace lab618
             leaf *pnext = pcurr->pnext;
             leaf *pprev = pcurr->pprev;
 
-            if (pnext != nullptr) {
+            if (pnext != nullptr)
+            {
                 pnext->pprev = pprev;
             }
+            else
+            {
+                m_pEnd = pprev;
+            }
 
-            if (pprev != nullptr) {
+            if (pprev != nullptr)
+            {
                 pprev->pnext = pnext;
                 it.setLeaf(pprev);
             }
-            else {
+            else
+            {
                 it.setLeaf(nullptr);
+                m_pBegin = pnext;
                 it.setLeafPreBegin(m_pBegin);
             }
 
@@ -421,16 +457,24 @@ namespace lab618
             leaf *pnext = pcurr->pnext;
             leaf *pprev = pcurr->pprev;
 
-            if (pprev != nullptr) {
+            if (pprev != nullptr)
+            {
                 pprev->pnext = pnext;
             }
+            else
+            {
+                m_pBegin = pnext;
+            }
 
-            if (pnext != nullptr) {
+            if (pnext != nullptr)
+            {
                 pnext->pprev = pprev;
                 it.setLeaf(pnext);
             }
-            else {
+            else
+            {
                 it.setLeaf(nullptr);
+                m_pEnd = pprev;
                 it.setLeafPostEnd(m_pEnd);
             }
 
