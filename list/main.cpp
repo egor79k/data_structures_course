@@ -26,6 +26,7 @@ public:
 	{
 		clearAndCheck();
 
+		// Fill list with sequence from back
 		for (int i = 0; i < size; ++i)
 		{
 			Map val = {i, std::to_string(i)};
@@ -34,6 +35,7 @@ public:
 
 		assert(list.getSize() == size && "Wrong size after pushBack()");
 
+		// Remove all elements from front
 		for (int i = 0; i < size; ++i)
 		{
 			assert(list.popFront().key == i && "popFront() returned wrong value");
@@ -82,8 +84,6 @@ public:
 
 			assert(list.getSize() == size && "Wrong size after popFront()");
 		}
-
-		//clearAndCheck();
 	}
 
 	// Checks operations with iterator
@@ -91,6 +91,7 @@ public:
 	{
 		clearAndCheck();
 
+		// Fill list with sequence from back
 		for (int i = 0; i < size; ++i)
 		{
 			Map val = {i, std::to_string(rand())};
@@ -101,24 +102,21 @@ public:
 
 		auto it = list.begin();
 
-		int checkId = rand() % size;
+		// Test list constructors
+		CSingleLinkedList<Map>::CIterator it_1(it);
+		assert(!(it != it_1) && "Wrong iterator created with copy constructor");
 
+		CSingleLinkedList<Map>::CIterator it_2(it.getLeaf());
+		assert(!(it != it_2) && "Wrong iterator constructed from leaf");
+
+		CSingleLinkedList<Map>::CIterator it_3 = it;
+		assert(!(it != it_3) && "Wrong iterator copied with assignment");
+
+		// Iterate with increment
 		for (int i = 0; i < size; ++i)
 		{
 			assert(it.isValid() && "Invalid iterator");
 			assert((*it).key == i && "Iterator points wrong value");
-
-			if (checkId == i)
-			{
-				CSingleLinkedList<Map>::CIterator it_1(it);
-				assert(!(it != it_1) && "Wrong iterator created with copy constructor");
-
-				CSingleLinkedList<Map>::CIterator it_2(it.getLeaf());
-				assert(!(it != it_2) && "Wrong iterator constructed from leaf");
-
-				CSingleLinkedList<Map>::CIterator it_3 = it;
-				assert(!(it != it_3) && "Wrong iterator copied with assignment");
-			}
 
 			++it;
 		}
@@ -131,6 +129,7 @@ public:
 	{
 		clearAndCheck();
 
+		// Fill list with random sequence from back
 		for (int i = 0; i < size; ++i)
 		{
 			Map val = {static_cast<int>(rand() % 10), std::to_string(rand())};
@@ -141,6 +140,7 @@ public:
 
 		auto it = list.begin();
 
+		// Test erasing first element
 		list.erase(it);
 		++it;
 		--size;
@@ -149,6 +149,7 @@ public:
 		assert(!(it != list.begin()) && "Iterator points wrong after erase first element");
 		assert(list.getSize() == size && "Wrong size after erase()");
 		
+		// Erasing elements with key=0
 		while (it.isValid())
 		{
 			if ((*it).key == 0)
@@ -192,6 +193,7 @@ public:
 	{
 		clearAndCheck();
 
+		// Fill list with sequence from back
 		for (int i = 0; i < size; ++i)
 		{
 			Map val = {i, std::to_string(i)};
@@ -200,6 +202,7 @@ public:
 
 		assert(list.getSize() == size && "Wrong size after pushBack()");
 
+		// Remove all elements from front
 		for (int i = 0; i < size; ++i)
 		{
 			assert(list.popFront().key == i && "popFront() returned wrong value");
@@ -207,6 +210,7 @@ public:
 
 		assert(list.getSize() == 0 && "Wrong size after popFront()");
 
+		// Fill list with sequence from front
 		for (int i = 0; i < size; ++i)
 		{
 			Map val = {i, std::to_string(i)};
@@ -215,6 +219,7 @@ public:
 
 		assert(list.getSize() == size && "Wrong size after pushBack()");
 
+		// Remove all elements from back
 		for (int i = 0; i < size; ++i)
 		{
 			assert(list.popBack().key == i && "popBack() returned wrong value");
@@ -273,8 +278,6 @@ public:
 
 			assert(list.getSize() == size && "Wrong size after pop()");
 		}
-
-		//clearAndCheck();
 	}
 
 	// Checks operations with iterator
@@ -282,6 +285,7 @@ public:
 	{
 		clearAndCheck();
 
+		// Fill list with sequence from back
 		for (int i = 0; i < size; ++i)
 		{
 			Map val = {i, std::to_string(rand())};
@@ -292,24 +296,21 @@ public:
 
 		auto it = list.begin();
 
-		int checkId = rand() % size;
+		// Test list constructors
+		CDualLinkedList<Map>::CIterator it_1(it);
+		assert(!(it != it_1) && "Wrong iterator created with copy constructor");
 
+		CDualLinkedList<Map>::CIterator it_2(it.getLeaf());
+		assert(!(it != it_2) && "Wrong iterator constructed from leaf");
+
+		CDualLinkedList<Map>::CIterator it_3 = it;
+		assert(!(it != it_3) && "Wrong iterator copied with assignment");
+
+		// Iterate with increment
 		for (int i = 0; i < size; ++i)
 		{
 			assert(it.isValid() && "Invalid iterator");
 			assert((*it).key == i && "Iterator points wrong value");
-
-			if (checkId == i)
-			{
-				CDualLinkedList<Map>::CIterator it_1(it);
-				assert(!(it != it_1) && "Wrong iterator created with copy constructor");
-
-				CDualLinkedList<Map>::CIterator it_2(it.getLeaf());
-				assert(!(it != it_2) && "Wrong iterator constructed from leaf");
-
-				CDualLinkedList<Map>::CIterator it_3 = it;
-				assert(!(it != it_3) && "Wrong iterator copied with assignment");
-			}
 
 			++it;
 		}
@@ -318,6 +319,7 @@ public:
 
 		it = list.end();
 
+		// Iterate with decrement
 		for (int i = size - 1; i >= 0; --i)
 		{
 			assert(it.isValid() && "Invalid iterator");
@@ -334,6 +336,7 @@ public:
 	{
 		clearAndCheck();
 
+		// Fill list with random sequence from back
 		for (int i = 0; i < size; ++i)
 		{
 			Map val = {static_cast<int>(rand() % 10), std::to_string(rand())};
@@ -344,6 +347,7 @@ public:
 
 		auto it = list.begin();
 
+		// Test erasing first element
 		list.erase(it);
 		++it;
 		--size;
@@ -352,6 +356,7 @@ public:
 		assert(!(it != list.begin()) && "Iterator points wrong after erase first element");
 		assert(list.getSize() == size && "Wrong size after erase()");
 		
+		// Erasing elements with key=0
 		while (it.isValid())
 		{
 			if ((*it).key == 0)
@@ -367,6 +372,7 @@ public:
 
 		it = list.end();
 
+		// Test erasing last element
 		list.eraseAndNext(it);
 		--it;
 		--size;
@@ -375,6 +381,7 @@ public:
 		assert(!(it != list.end()) && "Iterator points wrong after erase last element");
 		assert(list.getSize() == size && "Wrong size after eraseAndNext()");
 		
+		// Erasing elements with key=1
 		while (it.isValid())
 		{
 			if ((*it).key == 1)
@@ -413,7 +420,7 @@ int main()
 	sllt.test_3();
 	puts("OK\nTest 4 ...");
 	sllt.test_4();
-	puts("OK");
+	puts("OK\n");
 
 	DLListTester dllt;
 	
@@ -425,7 +432,7 @@ int main()
 	dllt.test_3();
 	puts("OK\nTest 4 ...");
 	dllt.test_4();
-	puts("OK");
+	puts("OK\n");
 
 	return 0;
 }

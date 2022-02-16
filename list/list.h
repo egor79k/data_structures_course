@@ -521,4 +521,5 @@ namespace lab618
         leaf* m_pBegin, *m_pEnd;
     };
 };
+
 #endif //#ifndef TEMPLATES_LIST_2022_02_03
