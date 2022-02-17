@@ -162,24 +162,25 @@ namespace lab618
         {
             leaf *pcurr = it.getLeaf();
 
-            if (pcurr != m_pBegin)
-            {
-                leaf *pprev = m_pBegin;
-
-                while (pprev->pnext != pcurr)
-                {
-                    pprev = pprev->pnext;
-                }
-
-                pprev->pnext = pcurr->pnext;
-                it.setLeaf(pprev);
-            }
-            else
+            if (pcurr == m_pBegin)
             {
                 it.setLeaf(nullptr);
                 m_pBegin = pcurr->pnext;
                 it.setLeafPreBegin(m_pBegin);
+
+                delete pcurr;
+                return;
             }
+
+            leaf *pprev = m_pBegin;
+
+            while (pprev->pnext != pcurr)
+            {
+                pprev = pprev->pnext;
+            }
+
+            pprev->pnext = pcurr->pnext;
+            it.setLeaf(pprev);
 
             delete pcurr;
         }
