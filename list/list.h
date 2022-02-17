@@ -56,9 +56,14 @@ namespace lab618
             void operator++()
             {
                 if (m_pCurrent != nullptr)
+                {
                     m_pCurrent = m_pCurrent->pnext;
+                }
                 else
+                {
                     m_pCurrent = m_pBegin;
+                    m_pBegin = nullptr;
+                }
             }
 
             T& getData()
@@ -127,7 +132,9 @@ namespace lab618
         void pushFront(T& data)
         {
             if (m_pBegin != nullptr)
+            {
                 m_pBegin = new leaf(data, m_pBegin);
+            }
             else
             {
                 m_pBegin = new leaf(data, nullptr);
@@ -138,7 +145,9 @@ namespace lab618
         T popFront()
         {
             if (m_pBegin == nullptr)
+            {
                 throw "List is empty!";
+            }
 
             leaf *tmp_ptr = m_pBegin;
             T tmp_data = m_pBegin->data;
@@ -270,17 +279,27 @@ namespace lab618
             void operator++()
             {
                 if (m_pCurrent != nullptr)
+                {
                     m_pCurrent = m_pCurrent->pnext;
+                }
                 else
+                {
                     m_pCurrent = m_pBegin;
+                    m_pBegin = nullptr;
+                }
             }
 
             void operator--()
             {
                 if (m_pCurrent != nullptr)
+                {
                     m_pCurrent = m_pCurrent->pprev;
+                }
                 else
+                {
                     m_pCurrent = m_pEnd;
+                    m_pEnd = nullptr;
+                }
             }
 
             T& getData()
