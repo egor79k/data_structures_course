@@ -40,6 +40,7 @@ namespace lab618
 
         virtual ~CMemoryManager()
         {
+            clear();
         }
 
         // Получить адрес нового элемента из менеджера
@@ -67,6 +68,7 @@ namespace lab618
 
             // Иначе ищем место в других блоках
             m_pCurrentBlk = m_pBlocks;
+
             while (m_pCurrentBlk != nullptr)
             {
                 if (m_pCurrentBlk->firstFreeIndex != -1)
@@ -85,12 +87,72 @@ namespace lab618
         // Освободить элемент в менеджере
         bool deleteObject(T* p)
         {
+            block *pCurrBlk = m_pBlocks;
+
+            // Ищем элемент по всем блокам
+            while (pCurrBlk != nullptr)
+            {
+                // Если адрес элемента попал в адреса блока, удаляем
+                if (pCurrBlk->pdata <= p && p <= (pCurrBlk->pdata + m_blkSize))
+                {
+                    // Вызываем деструктор объекта и очищаем память
+                    p->~T();
+                    memset(reinterpret_cast<void*>(p), 0, sizeof(T));
+
+                    // Обновляем данные о свободных ячейках
+                    *(reinterpret_cast<int*>(p)) = pCurrBlk->firstFreeIndex;
+                    pCurrBlk->firstFreeIndex = p - pCurrBlk->pdata;
+                    pCurrBlk->usedCount--;
+
+                    return true;
+                }
+
+                pCurrBlk = pCurrBlk->pnext;
+            }
+
+            // Иначе такого элемента нет
             return false;
         }
 
         // Очистка данных, зависит от m_isDeleteElementsOnDestruct
         void clear()
         {
+            m_pCurrentBlk = nullptr;
+
+            // Проходим по всем блокам
+            while (m_pBlocks != nullptr)
+            {
+                // Если блок не пуст:
+                if (m_pBlocks->usedCount > 0)
+                {
+                    // В первом режиме кидаем исключение
+                    if (m_isDeleteElementsOnDestruct == false)
+                    {
+                        throw CException();
+                    }
+
+                    // Во втором режиме очищаем все неудаленные объекты
+                    bool isFree[m_blkSize] = {};
+
+                    int freeIndex = m_pBlocks->firstFreeIndex;
+
+                    while (freeIndex != -1)
+                    {
+                        isFree[freeIndex] = true;
+                        freeIndex = *(reinterpret_cast<int*>(m_pBlocks->pdata + freeIndex));
+                    }
+
+                    for (int i = 0; i < m_blkSize; ++i)
+                    {
+                        if (isFree[i] == false)
+                        {
+                            (m_pBlocks->pdata + i)->~T();
+                        }
+                    }
+                }
+
+                deleteBlock(m_pBlocks);
+            }
         }
     private:
 
@@ -112,8 +174,28 @@ namespace lab618
         }
 
         // Освободить память блока данных. Применяется в clear
-        void deleteBlock(block *p)
+        void deleteBlock(block* p)
         {
+            // Если блок первый в списке, удаляем
+            if (p == m_pBlocks)
+            {
+                m_pBlocks = p->pnext;
+                delete[] p->pdata;
+                delete p;
+                return;
+            }
+
+            // Иначе ищем предыдущий блок, чтобы обновить его указатель
+            block* pprev = m_pBlocks;
+
+            while (pprev->pnext != p) {
+                pprev = pprev->pnext;
+            }
+
+            pprev->pnext = p->pnext;
+
+            delete[] p->pdata;
+            delete p;
         }
 
         // Выделить и инициализировать элемент из текущего блока
