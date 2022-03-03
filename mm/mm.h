@@ -135,32 +135,35 @@ namespace lab618
             // Проходим по всем блокам
             while (m_pBlocks != nullptr)
             {
-                // Если блок не пуст:
-                if (m_pBlocks->usedCount > 0)
+                // Если блок пуст, удаляем
+                if (m_pBlocks->usedCount == 0)
                 {
-                    // В первом режиме кидаем исключение
-                    if (!m_isDeleteElementsOnDestruct)
+                    deleteBlock(m_pBlocks);
+                    continue;
+                }
+
+                // Иначе, в первом режиме кидаем исключение
+                if (!m_isDeleteElementsOnDestruct)
+                {
+                    throw CException();
+                }
+
+                // Во втором режиме очищаем все неудаленные объекты
+                memset(reinterpret_cast<void*>(isFree), 0, sizeof(bool));
+
+                int freeIndex = m_pBlocks->firstFreeIndex;
+
+                while (freeIndex != -1)
+                {
+                    isFree[freeIndex] = true;
+                    freeIndex = *(reinterpret_cast<int*>(m_pBlocks->pdata + freeIndex));
+                }
+
+                for (int i = 0; i < m_blkSize; ++i)
+                {
+                    if (isFree[i] == false)
                     {
-                        throw CException();
-                    }
-
-                    // Во втором режиме очищаем все неудаленные объекты
-                    memset(reinterpret_cast<void*>(isFree), 0, sizeof(bool));
-
-                    int freeIndex = m_pBlocks->firstFreeIndex;
-
-                    while (freeIndex != -1)
-                    {
-                        isFree[freeIndex] = true;
-                        freeIndex = *(reinterpret_cast<int*>(m_pBlocks->pdata + freeIndex));
-                    }
-
-                    for (int i = 0; i < m_blkSize; ++i)
-                    {
-                        if (isFree[i] == false)
-                        {
-                            (m_pBlocks->pdata + i)->~T();
-                        }
+                        (m_pBlocks->pdata + i)->~T();
                     }
                 }
 
