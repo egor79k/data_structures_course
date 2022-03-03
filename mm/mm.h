@@ -51,19 +51,12 @@ namespace lab618
             {
                 m_pCurrentBlk = newBlock();
                 return allocateObject();
-                //m_pCurrentBlk->firstFreeIndex = *(reinterpret_cast<int*>(m_pCurrentBlk->pdata));
-                //m_pCurrentBlk->usedCount++;
-                //return m_pCurrentBlk->pdata;
             }
 
             // Если в текущем блоке есть свободное место, возвращаем его
             if (m_pCurrentBlk->firstFreeIndex != -1)
             {
                 return allocateObject();
-                //int id = m_pCurrentBlk->firstFreeIndex;
-                //m_pCurrentBlk->firstFreeIndex = *(reinterpret_cast<int*>(m_pCurrentBlk->pdata + m_pCurrentBlk->firstFreeIndex));
-                //m_pCurrentBlk->usedCount++;
-                //return m_pCurrentBlk->pdata + id;
             }
 
             // Иначе ищем место в других блоках
@@ -92,10 +85,24 @@ namespace lab618
             // Ищем элемент по всем блокам
             while (pCurrBlk != nullptr)
             {
-                // Если адрес элемента попал в адреса блока, удаляем
+                // Если адрес элемента попал в адреса блока
                 if (pCurrBlk->pdata <= p && p <= (pCurrBlk->pdata + m_blkSize))
                 {
-                    // Вызываем деструктор объекта и очищаем память
+                    // Проверяем не свободен ли уже этот элемент
+                    int freeIndex = pCurrBlk->firstFreeIndex;
+
+                    while (freeIndex != -1)
+                    {
+                        // Если уже свободен, возвращаем false
+                        if (pCurrBlk->pdata + freeIndex == p)
+                        {
+                            return false;
+                        }
+
+                        freeIndex = *(reinterpret_cast<int*>(pCurrBlk->pdata + freeIndex));
+                    }
+
+                    // Вызываем деструктор объекта и обнуляем память
                     p->~T();
                     memset(reinterpret_cast<void*>(p), 0, sizeof(T));
 
@@ -118,6 +125,12 @@ namespace lab618
         void clear()
         {
             m_pCurrentBlk = nullptr;
+            bool *isFree = nullptr;
+
+            if (m_isDeleteElementsOnDestruct)
+            {
+                isFree = new bool[m_blkSize];
+            }
 
             // Проходим по всем блокам
             while (m_pBlocks != nullptr)
@@ -126,13 +139,13 @@ namespace lab618
                 if (m_pBlocks->usedCount > 0)
                 {
                     // В первом режиме кидаем исключение
-                    if (m_isDeleteElementsOnDestruct == false)
+                    if (!m_isDeleteElementsOnDestruct)
                     {
                         throw CException();
                     }
 
                     // Во втором режиме очищаем все неудаленные объекты
-                    bool isFree[m_blkSize] = {};
+                    memset(reinterpret_cast<void*>(isFree), 0, sizeof(bool));
 
                     int freeIndex = m_pBlocks->firstFreeIndex;
 
@@ -153,13 +166,18 @@ namespace lab618
 
                 deleteBlock(m_pBlocks);
             }
+
+            if (m_isDeleteElementsOnDestruct)
+            {
+                delete[] isFree;
+            }
         }
     private:
 
         // Создать новый блок данных. Применяется в newObject
         block* newBlock()
         {
-            m_pBlocks = new block{new T[m_blkSize], m_pBlocks, 0, 0};
+            m_pBlocks = new block{reinterpret_cast<T*>(new char [m_blkSize * sizeof(T)]), m_pBlocks, 0, 0};
             
             T* pdata = m_pBlocks->pdata;
             
@@ -180,7 +198,7 @@ namespace lab618
             if (p == m_pBlocks)
             {
                 m_pBlocks = p->pnext;
-                delete[] p->pdata;
+                delete[] reinterpret_cast<char*>(p->pdata);
                 delete p;
                 return;
             }
@@ -194,7 +212,7 @@ namespace lab618
 
             pprev->pnext = p->pnext;
 
-            delete[] p->pdata;
+            delete[] reinterpret_cast<char*>(p->pdata);
             delete p;
         }
 

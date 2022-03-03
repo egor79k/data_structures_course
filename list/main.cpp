@@ -163,7 +163,47 @@ public:
 			++it;
 		}
 	}
+/*
+	// Erasing on wrong iterator
+	void test_5(int size = 1000)
+	{
+		clearAndCheck();
 
+		CSingleLinkedList<Map> other_list;
+
+		// Fill lists with random sequence from back
+		for (int i = 0; i < size; ++i)
+		{
+			Map val = {static_cast<int>(rand() % 10), std::to_string(rand())};
+			list.pushBack(val);
+			other_list.pushBack(val);
+		}
+
+		assert(list.getSize() == size && "Wrong size after pushBack()");
+
+		auto it = list.begin();
+
+		// Move iterator to random position
+		for (int i = 0; i < rand() % size; ++i)
+		{
+			++it;
+		}
+
+		bool throws = false;
+
+		// Try to erase elements by wrong iterator
+		try
+		{
+			other_list.erase(it);
+		}
+		catch (const char* str)
+		{
+			throws = true;
+		}
+
+		assert(throws && "Doesn't throw exception on wrong iterator");
+	}
+*/
 private:
 	struct Map
 	{
@@ -421,6 +461,7 @@ int main()
 	puts("OK\nTest 4 ...");
 	sllt.test_4();
 	puts("OK\n");
+	//sllt.test_5();
 
 	DLListTester dllt;
 	

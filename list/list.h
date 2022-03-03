@@ -176,6 +176,11 @@ namespace lab618
 
             while (pprev->pnext != pcurr)
             {
+                if (pprev->pnext == nullptr)
+                {
+                    throw "Wrong iterator";
+                }
+
                 pprev = pprev->pnext;
             }
 

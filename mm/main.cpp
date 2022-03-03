@@ -10,15 +10,15 @@ namespace mm_test
 {
 	struct Node
 	{
-		int key;
-		std::string str;
+		int key = 1;
+		std::string str = "empty";
 		// Date date;
 	};
 
 	// Последовательное выделение и освобождение памяти
-	void test_1(const int max_elements_num=5000)
+	void test_1(const int max_elements_num=5000, const int block_size=256)
 	{
-		lab618::CMemoryManager<Node> mm(256);
+		lab618::CMemoryManager<Node> mm(block_size);
 
 		std::vector<Node*> nodes(max_elements_num);
 
@@ -26,6 +26,7 @@ namespace mm_test
 		{
 			nodes[i] = (mm.newObject());
 			assert(nodes[i] != nullptr && "New object is nullptr");
+			assert(1 == nodes[i]->key && "empty" == nodes[i]->str && "Object not constructed");
 		}
 
 		while (!nodes.empty())
@@ -45,9 +46,9 @@ namespace mm_test
 	}
 
 	// Выделение и освобождение в случайном порядке
-	void test_2(int max_elements_num=5000)
+	void test_2(int max_elements_num=5000, const int block_size=256)
 	{
-		lab618::CMemoryManager<Node> mm(256, true);
+		lab618::CMemoryManager<Node> mm(block_size, true);
 
 		std::vector<Node*> nodes;
 
@@ -93,6 +94,43 @@ namespace mm_test
 			assert(false && "Clear throws exception in DeleteElementsOnDestruct mode");
 		}
 	}
+
+	// Другие случаи
+	void test_3(const int block_size=128)
+	{
+		lab618::CMemoryManager<Node> mm1(block_size, true);
+		lab618::CMemoryManager<Node> mm2(block_size);
+
+		Node *n1 = mm1.newObject();
+		Node *n2 = mm2.newObject();
+
+		assert(n1 != nullptr && "New object is nullptr");
+		assert(n2 != nullptr && "New object is nullptr");
+
+		assert(!mm1.deleteObject(n2) && "Delete object from other manager");
+		assert(!mm2.deleteObject(n1) && "Delete object from other manager");
+
+		assert(mm1.deleteObject(n1) && "Can't delete existing object");
+		assert(mm2.deleteObject(n2) && "Can't delete existing object");
+
+		assert(!mm1.deleteObject(n1) && "Delete unexisting object");
+		assert(!mm2.deleteObject(n2) && "Delete unexisting object");
+
+		std::vector<Node*> nodes(block_size);
+
+		// Заполняем ровно один блок
+		for (int i = 0; i < block_size; ++i)
+		{
+			nodes[i] = (mm1.newObject());
+			assert(nodes[i] != nullptr && "New object is nullptr");
+		}
+
+		Node *rand_obj = nodes[rand() % block_size];
+
+		assert(mm1.deleteObject(rand_obj) && "Can't delete existing object");
+
+		assert(mm1.newObject() == rand_obj && "Wrong allocation behaviour");
+	}
 };
 
 
@@ -104,6 +142,8 @@ int main()
 	mm_test::test_1();
 	puts("OK\nTest 2");
 	mm_test::test_2();
+	puts("OK\nTest 3");
+	mm_test::test_3();
 	puts("OK");
 
 	return 0;
