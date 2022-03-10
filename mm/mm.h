@@ -124,8 +124,12 @@ namespace lab618
         // Очистка данных, зависит от m_isDeleteElementsOnDestruct
         void clear()
         {
+            block* pBlocks = m_pBlocks;
+
+            m_pBlocks = nullptr;
             m_pCurrentBlk = nullptr;
-            bool *isFree = nullptr;
+
+            bool* isFree = nullptr;
 
             if (m_isDeleteElementsOnDestruct)
             {
@@ -133,12 +137,14 @@ namespace lab618
             }
 
             // Проходим по всем блокам
-            while (m_pBlocks != nullptr)
+            while (pBlocks != nullptr)
             {
                 // Если блок пуст, удаляем
-                if (m_pBlocks->usedCount == 0)
+                if (pBlocks->usedCount == 0)
                 {
-                    deleteBlock(m_pBlocks);
+                    block* pCurrentBlk = pBlocks->pnext;
+                    deleteBlock(pBlocks);
+                    pBlocks = pCurrentBlk;
                     continue;
                 }
 
@@ -149,25 +155,27 @@ namespace lab618
                 }
 
                 // Во втором режиме очищаем все неудаленные объекты
-                memset(reinterpret_cast<void*>(isFree), 0, sizeof(bool));
+                memset(reinterpret_cast<void*>(isFree), 0, m_blkSize * sizeof(bool));
 
-                int freeIndex = m_pBlocks->firstFreeIndex;
+                int freeIndex = pBlocks->firstFreeIndex;
 
                 while (freeIndex != -1)
                 {
                     isFree[freeIndex] = true;
-                    freeIndex = *(reinterpret_cast<int*>(m_pBlocks->pdata + freeIndex));
+                    freeIndex = *(reinterpret_cast<int*>(pBlocks->pdata + freeIndex));
                 }
 
                 for (int i = 0; i < m_blkSize; ++i)
                 {
                     if (isFree[i] == false)
                     {
-                        (m_pBlocks->pdata + i)->~T();
+                        (pBlocks->pdata + i)->~T();
                     }
                 }
 
-                deleteBlock(m_pBlocks);
+                block* pCurrentBlk = pBlocks->pnext;
+                deleteBlock(pBlocks);
+                pBlocks = pCurrentBlk;
             }
 
             if (m_isDeleteElementsOnDestruct)
@@ -175,6 +183,7 @@ namespace lab618
                 delete[] isFree;
             }
         }
+
     private:
 
         // Создать новый блок данных. Применяется в newObject
@@ -197,26 +206,10 @@ namespace lab618
         // Освободить память блока данных. Применяется в clear
         void deleteBlock(block* p)
         {
-            // Если блок первый в списке, удаляем
-            if (p == m_pBlocks)
-            {
-                m_pBlocks = p->pnext;
-                delete[] reinterpret_cast<char*>(p->pdata);
-                delete p;
-                return;
-            }
-
-            // Иначе ищем предыдущий блок, чтобы обновить его указатель
-            block* pprev = m_pBlocks;
-
-            while (pprev->pnext != p) {
-                pprev = pprev->pnext;
-            }
-
-            pprev->pnext = p->pnext;
-
             delete[] reinterpret_cast<char*>(p->pdata);
+            p->pdata = nullptr;
             delete p;
+            return;
         }
 
         // Выделить и инициализировать элемент из текущего блока

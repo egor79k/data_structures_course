@@ -12,7 +12,7 @@ namespace mm_test
 	{
 		int key = 1;
 		std::string str = "empty";
-		// Date date;
+		std::string date = "";
 	};
 
 	// Последовательное выделение и освобождение памяти
