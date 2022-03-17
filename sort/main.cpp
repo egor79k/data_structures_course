@@ -1,3 +1,4 @@
+#include <cassert>
 #include <iostream>
 #include <string>
 
@@ -11,15 +12,15 @@ namespace sort_test {
     };
 
 
-    int compareNodes(const Node* n1, const Node* n2)
+    int compareNodes(const Node *n1, const Node *n2)
     {
         return n2->key - n1->key;
     }
 
 
-    Node** generateArray(const int size)
+    Node **generateArray(const int size)
     {
-        Node** nodes = new Node*[size];
+        Node **nodes = new Node*[size];
 
         for (int i = 0; i < size; ++i)
         {
@@ -30,7 +31,7 @@ namespace sort_test {
     }
 
 
-    void deleteArray(Node** nodes, const int size)
+    void deleteArray(Node **nodes, const int size)
     {
         for (int i = 0; i < size; ++i)
         {
@@ -41,7 +42,7 @@ namespace sort_test {
     }
 
 
-    bool checkSort(Node** nodes, const int size)
+    bool isSorted(Node** nodes, const int size)
     {
         for (int i = 0; i < size - 1; ++i)
         {
@@ -55,25 +56,31 @@ namespace sort_test {
     }
 
 
-    void test_1()
+    void test_1(const int size, int iter=100)
     {
-        const int size = 1024;
-        Node** nodes = generateArray(size);
+        while(iter--)
+        {
+            Node **nodes = generateArray(size);
 
-        templates::mergeSort<Node>(nodes, size, compareNodes);
+            templates::mergeSort<Node>(nodes, size, compareNodes);
 
-        std::cout << "Result: " << checkSort(nodes, size) << std::endl;
+            assert(isSorted(nodes, size) && "Wrong order after sort");
 
-        deleteArray(nodes, size);
+            deleteArray(nodes, size);
+        }
     }
-
-
 }; // namespace sort_test
 
 
 int main()
 {
-    sort_test::test_1();
+    srand(42);
+
+    puts("Test 1 ...");
+    sort_test::test_1(1024);
+    puts("OK\nTest 2 ...");
+    sort_test::test_1(4096);
+    puts("OK\n");
 
     return 0;
 }
