@@ -36,7 +36,7 @@ namespace lab618
     Данный класс не хранит данные — хранит, только указатели на них.
     Хранение данных производится вне рамок данного класса!
     */
-    template <class T, unsigned int(*HashFunc)(const T* pElement), int(*Compare)(const T *pElement, const T* pElement2) >
+    template <class T, unsigned int(*HashFunc)(const T* pElement), int(*Compare)(const T* pElement, const T* pElement2) >
     class CHash
     {
     private:
@@ -48,7 +48,7 @@ namespace lab618
         struct leaf
         {
             T* pData;
-            leaf *pnext;
+            leaf* pnext;
         };
 
     public:
@@ -80,12 +80,18 @@ namespace lab618
                 m_pTable[i] = nullptr;
             }
         }
+
         /**
         Деструктор. Должен освобождать всю выделенную память
         */
         virtual ~CHash()
         {
+            clear();
+
             delete[] m_pTable;
+            m_pTable = nullptr;
+
+            m_tableSize = 0;
         }
 
         /**
@@ -93,44 +99,39 @@ namespace lab618
         */
         bool add(T* pElement)
         {
-            unsigned int hash = HashFunc(pElement) % m_tableSize;
-            leaf *pcurr = m_pTable[hash];
+            unsigned int idx = 0;
 
-            if (pcurr == nullptr)
+            if (findLeaf(pElement, idx) != nullptr)
             {
-                // Если нет элемента, вставляем
-                m_pTable[hash] = m_Memory.newObject();
-                pcurr->pData = pElement;
-                pcurr->pnext = nullptr;
-                return true;
+                return false;
             }
 
-            leaf* pprev = pcurr;
+            // Если элемент не нашелся, добавляем
+            createLeaf(pElement, idx);
 
-            while(pcurr != nullptr)
-            {
-                // Проверяем нет ли такого элемента
-                if (Compare(pcurr->pData, pElement) == 0)
-                {
-                    return false;
-                }
-
-                pprev = pcurr;
-                pcurr = pcurr->pnext;
-            }
-
-            // Если не нашли, вставляем
-            pprev->pnext = m_Memory.newObject();
-            pcurr->pData = pElement;
-            pcurr->pnext = nullptr;
-            retunr true;
+            return true;
         }
+
         /**
         Функция обновления элемента в Хеш-таблице. Обновляет, если элемент уже есть добавляет, если элемента еще нет.
         Возвращает false, если был добавлен новый элемент, true если элемент обновлен.
         */
         bool update(T* pElement)
         {
+            unsigned int idx = 0;
+
+            leaf* pcurr = findLeaf(pElement, idx);
+
+            // Если элемент не нашелся, добавляем
+            if (pcurr == nullptr)
+            {
+                createLeaf(pElement, idx);
+                return false;
+            }
+
+            // Иначе обновляем указатель
+            pcurr->pData = pElement;
+            return true;
         }
 
         /**
@@ -138,6 +139,15 @@ namespace lab618
         Обратите внимание, что для поиска используется частично заполненный объект, т.е. В нем должны быть заполнены поля на основе которых рассчитывается хеш.*/
         T* find(const T& element)
         {
+            unsigned int idx = 0;
+            leaf* pcurr = findLeaf(&element, idx);
+
+            if (pcurr != nullptr)
+            {
+                return pcurr->pData;
+            }
+
+            return nullptr;
         }
 
         /**
@@ -145,6 +155,33 @@ namespace lab618
         */
         bool remove(const T& element)
         {
+            unsigned int idx = 0;
+            leaf* pcurr = findLeaf(&element, idx);
+
+            if (pcurr == nullptr)
+            {
+                return false;
+            }
+
+            leaf* pprev = m_pTable[idx];
+
+            // Если элемент первый в списке, удаляем
+            if (pcurr == pprev)
+            {
+                m_pTable[idx] = pcurr->pnext;
+                m_Memory.deleteObject(pcurr);
+                return true;
+            }
+
+            // Иначе ищем предыдущий
+            while (pprev->pnext != pcurr)
+            {
+                pprev = pprev->pnext;
+            }
+
+            pprev->pnext = pcurr->pnext;
+            m_Memory.deleteObject(pcurr);
+            return true;
         }
 
         /**
@@ -152,11 +189,18 @@ namespace lab618
         */
         void clear()
         {
+            m_Memory.clear();
+
+            for (int i = 0; i < m_tableSize; ++i)
+            {
+                m_pTable[i] = nullptr;
+            }
         }
+
     private:
         /**
 
-        Элементарная функция поиска узла в Хеш-таблицу. Возвращает найденный узел и в переменную idx выставляет актуальный индекс хеш-таблицы.
+        Элементарная функция поиска узла в Хеш-таблице. Возвращает найденный узел и в переменную idx выставляет актуальный индекс хеш-таблицы.
         Данную функцию следует использовать в функциях add, update, find.
         Алгоритм функции:
          1. вычисляем хеш функцию
@@ -164,8 +208,45 @@ namespace lab618
          3. Перебираем список значений и если нашли, то возвращаем его.
          4. Если ничего не нашли, то возвращаем null
         */
-        leaf *findLeaf(const T* pElement, unsigned int & idx)
+        leaf* findLeaf(const T* pElement, unsigned int& idx)
         {
+            idx = HashFunc(pElement) % m_tableSize;
+
+            leaf* pcurr = m_pTable[idx];
+
+            while (pcurr != nullptr)
+            {
+                if (Compare(pcurr->pData, pElement) == 0)
+                {
+                    return pcurr;
+                }
+
+                pcurr = pcurr->pnext;
+            }
+
+            return nullptr;
+        }
+
+        /**
+        Создает новый лист для элемента с вычисленным хешем.
+        Используется в add, update
+        */
+        void createLeaf(T* pElement, const unsigned int idx)
+        {
+            leaf* pcurr = nullptr;
+
+            try
+            {
+                pcurr = m_Memory.newObject();
+            }
+            catch (std::bad_alloc except)
+            {
+                throw CMemoryException();
+            }
+
+            pcurr->pData = pElement;
+            pcurr->pnext = m_pTable[idx];
+            m_pTable[idx] = pcurr;
         }
 
         /**
