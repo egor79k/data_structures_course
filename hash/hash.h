@@ -197,6 +197,43 @@ namespace lab618
             }
         }
 
+        /**
+        Среднее число коллизий
+        */
+        float count_collisions(int& max_cls)
+        {
+            int count = 0;
+            int collisions = 0;
+            max_cls = 0; 
+
+            for (int i = 0; i < m_tableSize; ++i)
+            {
+                leaf* pcurr = m_pTable[i];
+
+                if (pcurr != nullptr)
+                {
+                    ++count;
+                }
+
+                int curr_cls = 0;
+
+                while (pcurr != nullptr)
+                {
+                    ++curr_cls;
+                    pcurr = pcurr->pnext;
+                }
+
+                collisions += curr_cls;
+
+                if (curr_cls > max_cls)
+                {
+                    max_cls = curr_cls;
+                }
+            }
+
+            return static_cast<float>(collisions) / static_cast<float>(count);
+        }
+
     private:
         /**
 

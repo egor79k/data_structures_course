@@ -167,6 +167,24 @@ namespace hash_test
             }
         }
     }
+
+    // Подсчет среднего и максимального числа коллизий
+    void count_collisions(const int ht_size=1024, const int elems_num=1024)
+    {
+        lab618::CHash<Node, HashFunc, Compare> ht(ht_size, 128);
+        std::vector<Node*> nodes(elems_num);
+
+        // Добавляем элементы
+        for (int i = 0; i < elems_num; ++i)
+        {
+            nodes[i] = getRandNode();
+            assert(ht.add(nodes[i]) && "Can't add new node");
+        }
+
+        int max_cls = 0;
+        float num_cls = ht.count_collisions(max_cls);
+        printf("Collisions: size=%d, elements=%d, collisions=%f, max_cls=%d\n", ht_size, elems_num, num_cls, max_cls);
+    }
 }; // namespace hash_test
 
 
@@ -179,6 +197,9 @@ int main()
     puts("OK\nTest 2 ...");
     hash_test::test_2();
     puts("OK\n");
+
+    hash_test::count_collisions(1000, 1000);
+    hash_test::count_collisions(1000, 10000);
 
     return 0;
 }
