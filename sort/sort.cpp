@@ -23,7 +23,7 @@ namespace templates
         int right_id = middle;
         int id = 0;
 
-        for (id = 0; id < length && right_id < length && left_id < middle; ++id)
+        for (id = 0; right_id < length && left_id < middle; ++id)
         {
             if (pCompareFunc(ppArray[left_id], ppArray[right_id]) > 0)
             {
