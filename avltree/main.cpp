@@ -15,7 +15,7 @@ namespace avltree_test {
 
     void test_1()
     {
-        templates::CAVLTree avl_tree();
+        lab618::CAVLTree avl_tree();
     }
 }; // avltree_test
 

@@ -21,26 +21,34 @@ namespace templates
         // Объединяем два отсортированных подмассива
         int left_id = 0;
         int right_id = middle;
+        int id = 0;
 
-        for (int i = 0; i < length; ++i)
+        for (id = 0; id < length && right_id < length && left_id < middle; ++id)
         {
-            if ((left_id < middle) && ((right_id >= length) || pCompareFunc(ppArray[left_id], ppArray[right_id]) > 0))
+            if (pCompareFunc(ppArray[left_id], ppArray[right_id]) > 0)
             {
                 // Если текущий элемент левого массива меньше (или во втором
                 // массиве не осталось элементов), то следующим кладем его
-                ppTemp[i] = ppArray[left_id];
+                ppTemp[id] = ppArray[left_id];
                 ++left_id;
             }
             else
             {
                 // Иначе кладем текущий элемент из правого массива
-                ppTemp[i] = ppArray[right_id];
-                ++right_id;   
+                ppTemp[id] = ppArray[right_id];
+                ++right_id;
             }
         }
 
+        // Если в левом массиве остались элементы, переносим
+        while (left_id < middle) {
+            ppTemp[id] = ppArray[left_id];
+            ++left_id;
+            ++id;
+        }
+
         // Копируем объединенный массив из временной памяти
-        for (int i = 0; i < length; ++i)
+        for (int i = 0; i < id; ++i)
         {
             ppArray[i] = ppTemp[i];
         }
