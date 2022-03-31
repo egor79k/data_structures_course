@@ -4,7 +4,7 @@
 #include <cstring>
 
 
-namespace templates
+namespace lab618
 {
     template <class T>
     class CMemoryManager

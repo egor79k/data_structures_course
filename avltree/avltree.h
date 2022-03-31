@@ -90,14 +90,38 @@ namespace lab618
 
         bool update(T* pElement)
         {
+            leaf* pcurr = findLeaf(pElement);
+
+            if (nullptr == pcurr)
+            {
+                return false;
+            }
+
+            pcurr->pData = pElement;
+            
+            return true;
         }
-      
+
         T* find(const T& pElement)
         {
+            leaf* pcurr = findLeaf(&pElement);
+
+            if (nullptr == pcurr)
+            {
+                return nullptr;
+            }
+
+            return pcurr->pData;
         }
 
         bool remove(const T& element)
         {
+            leaf* pcurr = findLeaf(&element);
+
+            if (nullptr == pcurr)
+            {
+                return false;
+            }
         }
 
         void clear()
@@ -107,10 +131,49 @@ namespace lab618
         }
 
     private:
+        leaf* findLeaf(const T* pElement)
+        {
+            if (nullptr == m_pRoot)
+            {
+                return nullptr;
+            }
+
+            leaf* pcurr = m_pRoot;
+
+            while (true)
+            {
+                int cmp_result = Compare(pcurr->pData, pElement);
+
+                if (cmp_result < 0)
+                {
+                    if (pcurr->pLeft != nullptr)
+                    {
+                        pcurr = pcurr->pLeft;
+                        continue;
+                    }
+
+                    return nullptr;
+                }
+
+                if (cmp_result > 0)
+                {
+                    if (pcurr->pRight != nullptr)
+                    {
+                        pcurr = pcurr->pRight;
+                        continue;
+                    }
+
+                    return nullptr;
+                }
+
+                return pcurr;
+            }
+        }
+
         leaf* m_pRoot;
         CMemoryManager<leaf> m_Memory;
     };
 
-}; // namespace templates
+}; // namespace lab618
 
 #endif // #define AVL_HEAD_H_2015_03_31
