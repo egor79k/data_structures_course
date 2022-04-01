@@ -1,6 +1,8 @@
 #ifndef AVL_HEAD_H_2022_03_24
 #define AVL_HEAD_H_2022_03_24
 
+#include <algorithm>
+
 #include "mm.h"
 
 namespace lab618
@@ -23,24 +25,35 @@ namespace lab618
         {
         public:
             CException()
-            {
-            }
+            {}
         };
 
     public:
         CAVLTree(const int defaultBlockSize=256) :
             m_pRoot(nullptr),
             m_Memory(defaultBlockSize, true)
-        {
-        }
+        {}
+
 
         virtual ~CAVLTree()
         {
             clear();
         }
 
+
         bool add(T* pElement)
         {
+            leaf* pTemp = addRec(m_pRoot, pElement);
+
+            if (nullptr == pTemp)
+            {
+                return false;
+            }
+
+            m_pRoot = pTemp;
+            return true;
+
+            /*
             if (nullptr == m_pRoot)
             {
                 m_pRoot = m_Memory.newObject();
@@ -48,35 +61,35 @@ namespace lab618
                 return true;
             }
 
-            leaf* pcurr = m_pRoot;
+            leaf* pCurr = m_pRoot;
 
             while (true)
             {
-                int cmp_result = Compare(pcurr->pData, pElement);
+                int cmp_result = Compare(pCurr->pData, pElement);
 
                 if (cmp_result < 0)
                 {
-                    if (pcurr->pLeft != nullptr)
+                    if (pCurr->pLeft != nullptr)
                     {
-                        pcurr = pcurr->pLeft;
+                        pCurr = pCurr->pLeft;
                         continue;
                     }
 
-                    pcurr->pLeft = m_Memory.newObject();
-                    pcurr->pLeft->pData = pElement;
+                    pCurr->pLeft = m_Memory.newObject();
+                    pCurr->pLeft->pData = pElement;
                     break;
                 }
 
                 if (cmp_result > 0)
                 {
-                    if (pcurr->pRight != nullptr)
+                    if (pCurr->pRight != nullptr)
                     {
-                        pcurr = pcurr->pRight;
+                        pCurr = pCurr->pRight;
                         continue;
                     }
 
-                    pcurr->pRight = m_Memory.newObject();
-                    pcurr->pRight->pData = pElement;
+                    pCurr->pRight = m_Memory.newObject();
+                    pCurr->pRight->pData = pElement;
                     break;
                 }
 
@@ -85,44 +98,50 @@ namespace lab618
 
             // BALANCING
 
-            return true;
+            return true;*/
         }
+
 
         bool update(T* pElement)
         {
-            leaf* pcurr = findLeaf(pElement);
+            leaf* pCurr = findLeaf(pElement);
 
-            if (nullptr == pcurr)
+            if (nullptr == pCurr)
             {
                 return false;
             }
 
-            pcurr->pData = pElement;
+            pCurr->pData = pElement;
             
             return true;
         }
 
+
         T* find(const T& pElement)
         {
-            leaf* pcurr = findLeaf(&pElement);
+            leaf* pCurr = findLeaf(&pElement);
 
-            if (nullptr == pcurr)
+            if (nullptr == pCurr)
             {
                 return nullptr;
             }
 
-            return pcurr->pData;
+            return pCurr->pData;
         }
+
 
         bool remove(const T& element)
         {
-            leaf* pcurr = findLeaf(&element);
+            leaf* pCurr = findLeaf(&element);
 
-            if (nullptr == pcurr)
+            if (nullptr == pCurr)
             {
                 return false;
             }
+
+            return true;
         }
+
 
         void clear()
         {
@@ -130,7 +149,138 @@ namespace lab618
             m_pRoot = nullptr;
         }
 
+
     private:
+        leaf* rightRotate(leaf* pCurr)
+        {
+            leaf* pLeft = pCurr->pLeft;
+
+            if (nullptr == pLeft)
+            {
+                return pCurr;
+            }
+
+            pCurr->pLeft = pLeft->pRight;
+            pLeft->pRight = pCurr;
+
+            int cbf = pCurr->balanceFactor;
+            int lbf = pLeft->balanceFactor;
+
+            if (lbf <= 0)
+            {
+                pCurr->balanceFactor = cbf - lbf + 1;
+                pLeft->balanceFactor = std::max(lbf - cbf, 1) + cbf + 1;
+            }
+            else
+            {
+                ++(pCurr->balanceFactor);
+                pLeft->balanceFactor = std::max(-cbf, 1) + cbf + lbf + 1;
+            }
+
+            return pLeft;
+        }
+
+
+        leaf* leftRotate(leaf* pCurr)
+        {
+            leaf* pRight = pCurr->pRight;
+
+            if (nullptr == pRight)
+            {
+                return pCurr;
+            }
+
+            pCurr->pRight = pRight->pLeft;
+            pRight->pLeft = pCurr;
+
+            int cbf = pCurr->balanceFactor;
+            int lbf = pRight->balanceFactor;
+
+            if (lbf >= 0)
+            {
+                pCurr->balanceFactor = cbf - lbf - 1;
+                pRight->balanceFactor = cbf - std::max(cbf - lbf, 1) - 1;
+            }
+            else
+            {
+                --(pCurr->balanceFactor);
+                pRight->balanceFactor = cbf + lbf - std::max(cbf, 1) - 1;
+            }
+
+            return pRight;
+        }
+
+
+        leaf* balance(leaf* pCurr)
+        {
+            if (2 == pCurr->balanceFactor)
+            {
+                if (pCurr->pRight->balanceFactor < 0)
+                {
+                    pCurr->pRight = rightRotate(pCurr->pRight);
+                }
+
+                return leftRotate(pCurr);
+            }
+
+            if (-2 == pCurr->balanceFactor)
+            {
+                if (pCurr->pLeft->balanceFactor > 0)
+                {
+                    pCurr->pLeft = leftRotate(pCurr->pLeft);
+                }
+
+                return rightRotate(pCurr);
+            }
+
+            return pCurr;
+        }
+
+
+        leaf* addRec(leaf* pCurr, T* pElement)
+        {
+            if (nullptr == pCurr)
+            {
+                pCurr = m_Memory.newObject();
+                pCurr->pData = pElement;
+                return pCurr;
+            }
+
+            int cmp_result = Compare(pCurr->pData, pElement);
+
+            leaf* pChild = nullptr;
+
+            if (cmp_result < 0)
+            {
+                pChild = addRec(pCurr->pLeft, pElement);
+
+                if (nullptr == pChild)
+                {
+                    return nullptr;
+                }
+
+                pCurr->pLeft = pChild;
+                --(pCurr->balanceFactor);
+                return balance(pCurr);
+            }
+            else if (cmp_result > 0)
+            {
+                pChild = addRec(pCurr->pRight, pElement);
+
+                if (nullptr == pChild)
+                {
+                    return nullptr;
+                }
+
+                pCurr->pRight = pChild;
+                ++(pCurr->balanceFactor);
+                return balance(pCurr);
+            }
+
+            return nullptr;
+        }
+
+
         leaf* findLeaf(const T* pElement)
         {
             if (nullptr == m_pRoot)
@@ -138,17 +288,17 @@ namespace lab618
                 return nullptr;
             }
 
-            leaf* pcurr = m_pRoot;
+            leaf* pCurr = m_pRoot;
 
             while (true)
             {
-                int cmp_result = Compare(pcurr->pData, pElement);
+                int cmp_result = Compare(pCurr->pData, pElement);
 
                 if (cmp_result < 0)
                 {
-                    if (pcurr->pLeft != nullptr)
+                    if (pCurr->pLeft != nullptr)
                     {
-                        pcurr = pcurr->pLeft;
+                        pCurr = pCurr->pLeft;
                         continue;
                     }
 
@@ -157,18 +307,19 @@ namespace lab618
 
                 if (cmp_result > 0)
                 {
-                    if (pcurr->pRight != nullptr)
+                    if (pCurr->pRight != nullptr)
                     {
-                        pcurr = pcurr->pRight;
+                        pCurr = pCurr->pRight;
                         continue;
                     }
 
                     return nullptr;
                 }
 
-                return pcurr;
+                return pCurr;
             }
         }
+
 
         leaf* m_pRoot;
         CMemoryManager<leaf> m_Memory;

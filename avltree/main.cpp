@@ -36,6 +36,7 @@ namespace avltree_test {
         lab618::CAVLTree<Node, Compare> at;
         std::vector<Node*> nodes(at_size);
 
+        // Testing add()
         // Добавляем элементы
         for (int i = 0; i < at_size; ++i)
         {
@@ -43,7 +44,7 @@ namespace avltree_test {
             assert(at.add(nodes[i]) && "Can't add new node");
         }
 
-        // Testing add()
+        // Testing update()
         // Обновляем некоторые элементы и проверяем, что они находятся
         for (int i = 0; i < at_size; i += 5)
         {
