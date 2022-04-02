@@ -66,6 +66,8 @@ namespace avltree_test {
         // Удаляем некоторые элементы и проверяем, что их нет и их нельзя удалить дважды
         for (int i = 0; i < at_size; i += 3)
         {
+            printf("Remove %d\n", i);
+            fflush(stdout);
             assert(at.remove(*nodes[i]) && "Can't remove existing object");
             assert(at.find(*nodes[i]) == nullptr && "Find removed object");
             assert(!at.remove(*nodes[i]) && "Object removed twice");

@@ -117,9 +117,9 @@ namespace lab618
         }
 
 
-        T* find(const T& pElement)
+        T* find(const T& element)
         {
-            leaf* pCurr = findLeaf(&pElement);
+            leaf* pCurr = findLeaf(&element);
 
             if (nullptr == pCurr)
             {
@@ -132,14 +132,11 @@ namespace lab618
 
         bool remove(const T& element)
         {
-            leaf* pCurr = findLeaf(&element);
+            bool isFinded = false;
 
-            if (nullptr == pCurr)
-            {
-                return false;
-            }
+            m_pRoot = removeRec(m_pRoot, &element, isFinded);
 
-            return true;
+            return isFinded;
         }
 
 
@@ -263,7 +260,8 @@ namespace lab618
                 --(pCurr->balanceFactor);
                 return balance(pCurr);
             }
-            else if (cmp_result > 0)
+
+            if (cmp_result > 0)
             {
                 pChild = addRec(pCurr->pRight, pElement);
 
@@ -278,6 +276,105 @@ namespace lab618
             }
 
             return nullptr;
+        }
+
+
+        leaf* removeMin(leaf* pCurr, bool& isRebalanced)
+        {
+            if (nullptr == pCurr->pLeft)
+            {
+                isRebalanced = true;
+                return pCurr->pRight;
+            }
+
+            pCurr->pLeft = removeMin(pCurr->pLeft, isRebalanced);
+
+            if (isRebalanced)
+            {
+               ++(pCurr->balanceFactor);
+            }
+
+            pCurr = balance(pCurr);
+
+            if (0 != pCurr->balanceFactor)
+            {
+                isRebalanced = false;
+            }
+
+            return pCurr;
+        }
+
+
+        leaf* removeRec(leaf* pCurr, const T* pElement, bool& isFinded)
+        {
+            if (nullptr == pCurr)
+            {
+                // Не нашли элемент
+                isFinded = false;
+                return nullptr;
+            }
+
+            int cmp_result = Compare(pCurr->pData, pElement);
+
+            leaf* pChild = nullptr;
+
+            if (cmp_result < 0)
+            {
+                pCurr->pLeft = removeRec(pCurr->pLeft, pElement, isFinded);
+
+                if (!isFinded)
+                {
+                    return pCurr;
+                }
+
+                ++(pCurr->balanceFactor);
+                return balance(pCurr);
+            }
+            
+            if (cmp_result > 0)
+            {
+                pCurr->pRight = removeRec(pCurr->pRight, pElement, isFinded);
+
+                if (!isFinded)
+                {
+                    return pCurr;
+                }
+
+                --(pCurr->balanceFactor);
+                return balance(pCurr);
+            }
+
+            // Нашли элемент
+            isFinded = true;
+            leaf* pLeft = pCurr->pLeft;
+            leaf* pRight = pCurr->pRight;
+            const int bf = pCurr->balanceFactor;
+            m_Memory.deleteObject(pCurr);
+
+            if (nullptr == pRight)
+            {
+                return pLeft;
+            }
+
+            // Ищем минимум в правом поддереве
+            leaf* pMin = pRight;
+            
+            while (nullptr != pMin->pLeft)
+            {
+                pMin = pMin->pLeft;
+            }
+
+            bool isRebalanced = false;
+            pMin->pRight = removeMin(pRight, isRebalanced);
+            pMin->pLeft = pLeft;
+            pMin->balanceFactor = bf;
+
+            if (isRebalanced)
+            {
+                --(pMin->balanceFactor);
+            }
+
+            return balance(pMin);
         }
 
 
