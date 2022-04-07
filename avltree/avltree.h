@@ -43,7 +43,8 @@ namespace lab618
 
         bool add(T* pElement)
         {
-            leaf* pTemp = addRec(m_pRoot, pElement);
+            bool isRebalanced = false;
+            leaf* pTemp = addRec(m_pRoot, pElement, isRebalanced);
 
             if (nullptr == pTemp)
             {
@@ -191,17 +192,17 @@ namespace lab618
             pRight->pLeft = pCurr;
 
             int cbf = pCurr->balanceFactor;
-            int lbf = pRight->balanceFactor;
+            int rbf = pRight->balanceFactor;
 
-            if (lbf >= 0)
+            if (rbf >= 0)
             {
-                pCurr->balanceFactor = cbf - lbf - 1;
-                pRight->balanceFactor = cbf - std::max(cbf - lbf, 1) - 1;
+                pCurr->balanceFactor = cbf - rbf - 1;
+                pRight->balanceFactor = cbf - std::max(cbf - rbf, 1) - 1;
             }
             else
             {
                 --(pCurr->balanceFactor);
-                pRight->balanceFactor = cbf + lbf - std::max(cbf, 1) - 1;
+                pRight->balanceFactor = cbf + rbf - std::max(cbf, 1) - 1;
             }
 
             return pRight;
@@ -234,12 +235,13 @@ namespace lab618
         }
 
 
-        leaf* addRec(leaf* pCurr, T* pElement)
+        leaf* addRec(leaf* pCurr, T* pElement, bool& isRebalanced)
         {
             if (nullptr == pCurr)
             {
                 pCurr = m_Memory.newObject();
                 pCurr->pData = pElement;
+                isRebalanced = true;
                 return pCurr;
             }
 
@@ -249,7 +251,7 @@ namespace lab618
 
             if (cmp_result < 0)
             {
-                pChild = addRec(pCurr->pLeft, pElement);
+                pChild = addRec(pCurr->pLeft, pElement, isRebalanced);
 
                 if (nullptr == pChild)
                 {
@@ -257,13 +259,25 @@ namespace lab618
                 }
 
                 pCurr->pLeft = pChild;
-                --(pCurr->balanceFactor);
-                return balance(pCurr);
+
+                if (isRebalanced)
+                {
+                    --(pCurr->balanceFactor);
+                }
+
+                pCurr = balance(pCurr);
+
+                if (0 == pCurr->balanceFactor)
+                {
+                    isRebalanced = false;
+                }
+
+                return pCurr;
             }
 
             if (cmp_result > 0)
             {
-                pChild = addRec(pCurr->pRight, pElement);
+                pChild = addRec(pCurr->pRight, pElement, isRebalanced);
 
                 if (nullptr == pChild)
                 {
@@ -271,8 +285,20 @@ namespace lab618
                 }
 
                 pCurr->pRight = pChild;
-                ++(pCurr->balanceFactor);
-                return balance(pCurr);
+
+                if (isRebalanced)
+                {
+                    ++(pCurr->balanceFactor);
+                }
+
+                pCurr = balance(pCurr);
+
+                if (0 == pCurr->balanceFactor)
+                {
+                    isRebalanced = false;
+                }
+
+                return pCurr;
             }
 
             return nullptr;
@@ -417,7 +443,55 @@ namespace lab618
             }
         }
 
+public:
+        void WriteLabels (leaf *pCurr, FILE *out)
+        {
+            fprintf (out, "%d[label = \" {%d | {left\\n%p | balance\\n%d | right\\n%p}} \"]\n", (int)*(pCurr->pData), (int)*(pCurr->pData), pCurr->pLeft, pCurr->balanceFactor, pCurr->pRight);
+            if (pCurr->pLeft != NULL) WriteLabels (pCurr->pLeft, out);
+            if (pCurr->pRight != NULL) WriteLabels (pCurr->pRight, out);
+            return;
+        }
 
+
+        void WriteConnections (leaf *pCurr, FILE *out)
+        {
+            if (pCurr->pLeft == NULL && pCurr->pRight == NULL) return;
+
+            if (pCurr->pLeft != NULL)
+            {
+                fprintf (out, "%d->%d [style=\"bold\", color = \"royalblue\"];\n", (int)*(pCurr->pData), (int)*(pCurr->pLeft->pData));
+                WriteConnections (pCurr->pLeft, out);
+            }
+
+            if (pCurr->pRight != NULL)
+            {
+                fprintf (out, "%d->%d [style=\"bold\", color = \"lawngreen\"];\n", (int)*(pCurr->pData), (int)*(pCurr->pRight->pData));
+                WriteConnections (pCurr->pRight, out);
+            }
+            return;
+        }
+
+
+        void Dump (std::string png_file)
+        {
+            FILE *out = fopen ("tree.dot", "w");
+
+            fprintf (out, "digraph {\nnode[shape = record];\n");
+            WriteLabels (m_pRoot, out);
+            if (m_pRoot->pLeft != NULL || m_pRoot->pRight != NULL) WriteConnections (m_pRoot, out);
+            else fprintf (out, "%d;\n", (int)*(m_pRoot->pData));
+            fprintf(out, "}");
+
+            fclose (out);
+            std::string command = "dot tree.dot -T png -o ";
+            command += png_file;
+            //char command[53] = "dot tree.dot -T png -o ";
+            //strcpy (&command[23], png_file);
+            system (command.data());
+            return;
+        }
+
+private:
         leaf* m_pRoot;
         CMemoryManager<leaf> m_Memory;
     };

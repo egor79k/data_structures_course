@@ -11,6 +11,10 @@ namespace avltree_test {
     {
         int key;
         std::string data;
+
+        operator int() const {
+            return key;
+        }
     };
 
     int Compare(const Node* n1, const Node* n2)
@@ -30,6 +34,36 @@ namespace avltree_test {
         return node;
     }
 
+    void test_0(const int at_size=30)
+    {
+        lab618::CAVLTree<Node, Compare> at;
+        std::vector<Node*> nodes(at_size);
+
+        // Добавляем элементы
+        for (int i = 0; i < at_size; ++i)
+        {
+            nodes[i] = mm.newObject();
+            nodes[i]->key = rand() % 180;
+            printf("Add %d\n", nodes[i]->key);
+            fflush(stdout);
+            at.add(nodes[i]);
+            //at.Dump("tree_full_" + std::to_string(i) + ".png");
+        }
+
+        //at.Dump("tree_full.png");
+
+        for (int i = 0; i < at_size; i += 3)
+        {
+            printf("Remove %d\n", nodes[i]->key);
+            fflush(stdout);
+            // MAY BE NOT FULL
+            assert(at.remove(*nodes[i]) && "Can't remove existing object");
+            at.Dump("tree_unfull_" + std::to_string(i) + ".png");
+        }
+
+        //at.Dump("tree_unfull.png");
+    }
+
     // Последовательная проверка всех методов
     void test_1(const int at_size=1024)
     {
@@ -43,6 +77,8 @@ namespace avltree_test {
             nodes[i] = getRandNode();
             assert(at.add(nodes[i]) && "Can't add new node");
         }
+
+        //at.Dump("tree.png");
 
         // Testing update()
         // Обновляем некоторые элементы и проверяем, что они находятся
@@ -88,8 +124,9 @@ namespace avltree_test {
 int main()
 {
     srand(42);
+    avltree_test::test_0();
     puts("Test 1 ...");
-    avltree_test::test_1();
+    //avltree_test::test_1();
     puts("OK\nTest 2 ...");
     return 0;
 }
