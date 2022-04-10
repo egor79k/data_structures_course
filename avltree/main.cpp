@@ -33,7 +33,7 @@ namespace avltree_test {
 
         return node;
     }
-
+/*
     void test_0(const int at_size=30)
     {
         lab618::CAVLTree<Node, Compare> at;
@@ -57,13 +57,13 @@ namespace avltree_test {
             printf("Remove %d\n", nodes[i]->key);
             fflush(stdout);
             // MAY BE NOT FULL
+            //at.dump("tree_unfull_" + std::to_string(i) + ".png");
             assert(at.remove(*nodes[i]) && "Can't remove existing object");
-            at.Dump("tree_unfull_" + std::to_string(i) + ".png");
         }
 
         //at.Dump("tree_unfull.png");
     }
-
+*/
     // Последовательная проверка всех методов
     void test_1(const int at_size=1024)
     {

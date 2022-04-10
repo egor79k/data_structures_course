@@ -133,11 +133,16 @@ namespace lab618
 
         bool remove(const T& element)
         {
-            bool isFinded = false;
+            bool isRebalanced = false;
+            leaf* pTemp = removeRec(m_pRoot, &element, isRebalanced);
 
-            m_pRoot = removeRec(m_pRoot, &element, isFinded);
+            if (nullptr == pTemp)
+            {
+                return false;
+            }
 
-            return isFinded;
+            m_pRoot = pTemp;
+            return true;
         }
 
 
@@ -331,12 +336,12 @@ namespace lab618
         }
 
 
-        leaf* removeRec(leaf* pCurr, const T* pElement, bool& isFinded)
+        leaf* removeRec(leaf* pCurr, const T* pElement, bool& isRebalanced)
         {
             if (nullptr == pCurr)
             {
                 // Не нашли элемент
-                isFinded = false;
+                isRebalanced = false;
                 return nullptr;
             }
 
@@ -346,32 +351,58 @@ namespace lab618
 
             if (cmp_result < 0)
             {
-                pCurr->pLeft = removeRec(pCurr->pLeft, pElement, isFinded);
+                pChild = removeRec(pCurr->pLeft, pElement, isRebalanced);
 
-                if (!isFinded)
+                if (nullptr == pChild && !isRebalanced)
                 {
-                    return pCurr;
+                    return nullptr;
                 }
 
-                ++(pCurr->balanceFactor);
-                return balance(pCurr);
+                pCurr->pLeft = pChild;
+
+                if (isRebalanced)
+                {
+                    ++(pCurr->balanceFactor);
+                }
+
+                pCurr = balance(pCurr);
+
+                if (0 != pCurr->balanceFactor)
+                {
+                    isRebalanced = false;
+                }
+
+                return pCurr;
             }
             
             if (cmp_result > 0)
             {
-                pCurr->pRight = removeRec(pCurr->pRight, pElement, isFinded);
+                pChild = removeRec(pCurr->pRight, pElement, isRebalanced);
 
-                if (!isFinded)
+                if (nullptr == pChild && !isRebalanced)
                 {
-                    return pCurr;
+                    return nullptr;
                 }
 
-                --(pCurr->balanceFactor);
-                return balance(pCurr);
+                pCurr->pRight = pChild;
+
+                if (isRebalanced)
+                {
+                    --(pCurr->balanceFactor);
+                }
+
+                pCurr = balance(pCurr);
+
+                if (0 != pCurr->balanceFactor)
+                {
+                    isRebalanced = false;
+                }
+
+                return pCurr;
             }
 
             // Нашли элемент
-            isFinded = true;
+            isRebalanced = true;
             leaf* pLeft = pCurr->pLeft;
             leaf* pRight = pCurr->pRight;
             const int bf = pCurr->balanceFactor;
@@ -390,17 +421,24 @@ namespace lab618
                 pMin = pMin->pLeft;
             }
 
-            bool isRebalanced = false;
-            pMin->pRight = removeMin(pRight, isRebalanced);
+            bool isRebalancedMin = false;
+            pMin->pRight = removeMin(pRight, isRebalancedMin);
             pMin->pLeft = pLeft;
             pMin->balanceFactor = bf;
 
-            if (isRebalanced)
+            if (isRebalancedMin)
             {
                 --(pMin->balanceFactor);
             }
 
-            return balance(pMin);
+            pMin = balance(pMin);
+
+            if (0 != pMin->balanceFactor)
+            {
+                isRebalanced = false;
+            }
+
+            return pMin;
         }
 
 
@@ -443,51 +481,71 @@ namespace lab618
             }
         }
 
-public:
-        void WriteLabels (leaf *pCurr, FILE *out)
-        {
-            fprintf (out, "%d[label = \" {%d | {left\\n%p | balance\\n%d | right\\n%p}} \"]\n", (int)*(pCurr->pData), (int)*(pCurr->pData), pCurr->pLeft, pCurr->balanceFactor, pCurr->pRight);
-            if (pCurr->pLeft != NULL) WriteLabels (pCurr->pLeft, out);
-            if (pCurr->pRight != NULL) WriteLabels (pCurr->pRight, out);
-            return;
-        }
 
-
-        void WriteConnections (leaf *pCurr, FILE *out)
+        void writeLabels (leaf *pCurr, FILE *out)
         {
-            if (pCurr->pLeft == NULL && pCurr->pRight == NULL) return;
+            fprintf(out, "%d[label = \" {%d | {left\\n%p | balance\\n%d | right\\n%p}} \"]\n", (int)*(pCurr->pData), (int)*(pCurr->pData), pCurr->pLeft, pCurr->balanceFactor, pCurr->pRight);
 
             if (pCurr->pLeft != NULL)
             {
-                fprintf (out, "%d->%d [style=\"bold\", color = \"royalblue\"];\n", (int)*(pCurr->pData), (int)*(pCurr->pLeft->pData));
-                WriteConnections (pCurr->pLeft, out);
+                writeLabels(pCurr->pLeft, out);
             }
 
             if (pCurr->pRight != NULL)
             {
-                fprintf (out, "%d->%d [style=\"bold\", color = \"lawngreen\"];\n", (int)*(pCurr->pData), (int)*(pCurr->pRight->pData));
-                WriteConnections (pCurr->pRight, out);
+                writeLabels(pCurr->pRight, out);
             }
+
             return;
         }
 
 
-        void Dump (std::string png_file)
+        void writeConnections (leaf *pCurr, FILE *out)
         {
-            FILE *out = fopen ("tree.dot", "w");
+            if (pCurr->pLeft == NULL && pCurr->pRight == NULL)
+            {
+                return;
+            }
 
-            fprintf (out, "digraph {\nnode[shape = record];\n");
-            WriteLabels (m_pRoot, out);
-            if (m_pRoot->pLeft != NULL || m_pRoot->pRight != NULL) WriteConnections (m_pRoot, out);
-            else fprintf (out, "%d;\n", (int)*(m_pRoot->pData));
+            if (pCurr->pLeft != NULL)
+            {
+                fprintf(out, "%d->%d [style=\"bold\", color = \"royalblue\"];\n", (int)*(pCurr->pData), (int)*(pCurr->pLeft->pData));
+                writeConnections(pCurr->pLeft, out);
+            }
+
+            if (pCurr->pRight != NULL)
+            {
+                fprintf(out, "%d->%d [style=\"bold\", color = \"lawngreen\"];\n", (int)*(pCurr->pData), (int)*(pCurr->pRight->pData));
+                writeConnections(pCurr->pRight, out);
+            }
+
+            return;
+        }
+
+
+        void dump (std::string pngFile)
+        {
+            FILE *out = fopen("tree.dot", "w");
+
+            fprintf(out, "digraph {\nnode[shape = record];\n");
+            writeLabels(m_pRoot, out);
+
+            if (m_pRoot->pLeft != NULL || m_pRoot->pRight != NULL)
+            {
+                writeConnections(m_pRoot, out);
+            }
+            else
+            {
+                fprintf(out, "%d;\n", (int)*(m_pRoot->pData));
+            }
+
             fprintf(out, "}");
+            fclose(out);
 
-            fclose (out);
             std::string command = "dot tree.dot -T png -o ";
-            command += png_file;
-            //char command[53] = "dot tree.dot -T png -o ";
-            //strcpy (&command[23], png_file);
+            command += pngFile;
             system (command.data());
+
             return;
         }
 
