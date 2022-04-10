@@ -136,7 +136,7 @@ namespace lab618
             bool isRebalanced = false;
             leaf* pTemp = removeRec(m_pRoot, &element, isRebalanced);
 
-            if (nullptr == pTemp)
+            if (nullptr == pTemp && !isRebalanced)
             {
                 return false;
             }
