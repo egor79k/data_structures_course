@@ -421,12 +421,11 @@ namespace lab618
                 pMin = pMin->pLeft;
             }
 
-            bool isRebalancedMin = false;
-            pMin->pRight = removeMin(pRight, isRebalancedMin);
+            pMin->pRight = removeMin(pRight, isRebalanced);
             pMin->pLeft = pLeft;
             pMin->balanceFactor = bf;
 
-            if (isRebalancedMin)
+            if (isRebalanced)
             {
                 --(pMin->balanceFactor);
             }
