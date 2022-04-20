@@ -65,6 +65,19 @@ namespace avltree_test {
         //at.Dump("tree_unfull.png");
     }
 */
+
+    void test_height(const int at_size=1024)
+    {
+        lab618::CAVLTree<Node, Compare> at;
+
+        for (int i = 0; i < at_size; ++i)
+        {
+            at.add(getRandNode());
+        }
+
+        printf("Size: %d, Height: %d\n", at_size, at.getHeight());
+    }
+
     // Последовательная проверка всех методов
     void test_1(const int at_size=1024)
     {

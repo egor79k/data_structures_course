@@ -7,6 +7,12 @@
 
 namespace lab618
 {
+    template<class T>
+    inline const T& max(const T& a, const T& b) 
+    {
+        return a > b ? a : b;
+    }
+
 
     template <class T, int(*Compare)(const T *pElement, const T* pElement2) >
     class CAVLTree
@@ -41,6 +47,21 @@ namespace lab618
         }
 
 
+        int getHeight()
+        {
+            leaf* pCurr = m_pRoot;
+            int height = 0;
+            
+            while (nullptr != pCurr->pLeft)
+            {
+                ++height;
+                pCurr = pCurr->pLeft;
+            }
+
+            return height;
+        }
+
+
         bool add(T* pElement)
         {
             bool isRebalanced = false;
@@ -53,53 +74,6 @@ namespace lab618
 
             m_pRoot = pTemp;
             return true;
-
-            /*
-            if (nullptr == m_pRoot)
-            {
-                m_pRoot = m_Memory.newObject();
-                m_pRoot->pData = pElement;
-                return true;
-            }
-
-            leaf* pCurr = m_pRoot;
-
-            while (true)
-            {
-                int cmp_result = Compare(pCurr->pData, pElement);
-
-                if (cmp_result < 0)
-                {
-                    if (pCurr->pLeft != nullptr)
-                    {
-                        pCurr = pCurr->pLeft;
-                        continue;
-                    }
-
-                    pCurr->pLeft = m_Memory.newObject();
-                    pCurr->pLeft->pData = pElement;
-                    break;
-                }
-
-                if (cmp_result > 0)
-                {
-                    if (pCurr->pRight != nullptr)
-                    {
-                        pCurr = pCurr->pRight;
-                        continue;
-                    }
-
-                    pCurr->pRight = m_Memory.newObject();
-                    pCurr->pRight->pData = pElement;
-                    break;
-                }
-
-                return false;
-            }
-
-            // BALANCING
-
-            return true;*/
         }
 
 
@@ -172,12 +146,12 @@ namespace lab618
             if (lbf <= 0)
             {
                 pCurr->balanceFactor = cbf - lbf + 1;
-                pLeft->balanceFactor = std::max(lbf - cbf, 1) + cbf + 1;
+                pLeft->balanceFactor = max(lbf - cbf, 1) + cbf + 1;
             }
             else
             {
                 ++(pCurr->balanceFactor);
-                pLeft->balanceFactor = std::max(-cbf, 1) + cbf + lbf + 1;
+                pLeft->balanceFactor = max(-cbf, 1) + cbf + lbf + 1;
             }
 
             return pLeft;
@@ -202,12 +176,12 @@ namespace lab618
             if (rbf >= 0)
             {
                 pCurr->balanceFactor = cbf - rbf - 1;
-                pRight->balanceFactor = cbf - std::max(cbf - rbf, 1) - 1;
+                pRight->balanceFactor = cbf - max(cbf - rbf, 1) - 1;
             }
             else
             {
                 --(pCurr->balanceFactor);
-                pRight->balanceFactor = cbf + rbf - std::max(cbf, 1) - 1;
+                pRight->balanceFactor = cbf + rbf - max(cbf, 1) - 1;
             }
 
             return pRight;
