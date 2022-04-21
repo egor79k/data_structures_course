@@ -1,7 +1,7 @@
 #ifndef COMPARE_ALGOS_BINSEARCH_H
 #define COMPARE_ALGOS_BINSEARCH_H
 
-namespace templates
+namespace lab618
 {
     typedef  int (CompareSortType)(const void *pElem1, const void *pElem2);
 
@@ -12,6 +12,6 @@ namespace templates
     {
         binSearch(reinterpret_cast<void**>(ppArray), length, (CompareSortType*)pCompareFunc);
     }
-}; // namespace templates
+}; // namespace lab618
 
 #endif // #define COMPARE_ALGOS_BINSEARCH_H

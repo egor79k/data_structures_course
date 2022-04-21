@@ -3,10 +3,10 @@
 #include "binsearch.h"
 
 
-namespace templates
+namespace lab618
 {
     void binSearch(void **ppArray, int length, CompareSortType pCompareFunc)
     {
         mergeSort(ppArray, length, pCompareFunc);
     }
-}; // namespace templates
+}; // namespace lab618
