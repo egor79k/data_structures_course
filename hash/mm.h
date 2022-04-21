@@ -88,20 +88,6 @@ namespace lab618
                 // Если адрес элемента попал в адреса блока
                 if (pCurrBlk->pdata <= p && p <= (pCurrBlk->pdata + m_blkSize))
                 {
-                    // Проверяем не свободен ли уже этот элемент
-                    int freeIndex = pCurrBlk->firstFreeIndex;
-
-                    while (freeIndex != -1)
-                    {
-                        // Если уже свободен, возвращаем false
-                        if (pCurrBlk->pdata + freeIndex == p)
-                        {
-                            return false;
-                        }
-
-                        freeIndex = *(reinterpret_cast<int*>(pCurrBlk->pdata + freeIndex));
-                    }
-
                     // Вызываем деструктор объекта и обнуляем память
                     p->~T();
                     memset(reinterpret_cast<void*>(p), 0, sizeof(T));
