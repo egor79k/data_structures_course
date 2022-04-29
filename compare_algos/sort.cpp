@@ -4,7 +4,7 @@
 #include "sort.h"
 
 
-namespace templates
+namespace lab618
 {
     void mergeSortRecursive(void **ppArray, void **ppTemp, int length, CompareSortType pCompareFunc)
     {
@@ -63,4 +63,4 @@ namespace templates
 
         delete[] ppTemp;
     }
-}; // namespace templates
+}; // namespace lab618

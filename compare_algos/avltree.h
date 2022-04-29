@@ -53,53 +53,6 @@ namespace lab618
 
             m_pRoot = pTemp;
             return true;
-
-            /*
-            if (nullptr == m_pRoot)
-            {
-                m_pRoot = m_Memory.newObject();
-                m_pRoot->pData = pElement;
-                return true;
-            }
-
-            leaf* pCurr = m_pRoot;
-
-            while (true)
-            {
-                int cmp_result = Compare(pCurr->pData, pElement);
-
-                if (cmp_result < 0)
-                {
-                    if (pCurr->pLeft != nullptr)
-                    {
-                        pCurr = pCurr->pLeft;
-                        continue;
-                    }
-
-                    pCurr->pLeft = m_Memory.newObject();
-                    pCurr->pLeft->pData = pElement;
-                    break;
-                }
-
-                if (cmp_result > 0)
-                {
-                    if (pCurr->pRight != nullptr)
-                    {
-                        pCurr = pCurr->pRight;
-                        continue;
-                    }
-
-                    pCurr->pRight = m_Memory.newObject();
-                    pCurr->pRight->pData = pElement;
-                    break;
-                }
-
-                return false;
-            }
-
-            // BALANCING
-
-            return true;*/
         }
 
 

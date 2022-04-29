@@ -1,7 +1,7 @@
 #ifndef SORT_HEAD_H_2022_03_17
 #define SORT_HEAD_H_2022_03_17
 
-namespace templates
+namespace lab618
 {
     /** Определение типа функции сравнения элементов
     \return
@@ -24,6 +24,6 @@ namespace templates
     {
         heapSort(reinterpret_cast<void**>(ppArray), length, (CompareSortType*)pCompareFunc);
     }
-}; // namespace templates
+}; // namespace lab618
 
 #endif // #define SORT_HEAD_H_2021_02_25
